@@ -66,6 +66,8 @@ top_p :float =1.0 ,
 
 system_message :str ="",
 
+api_key :str ="EMPTY",
+
 ):
 
 
@@ -81,7 +83,7 @@ system_message :str ="",
 
     "base_url":base_url ,
 
-    "api_key":"EMPTY",
+    "api_key":api_key or "EMPTY",
 
     "temperature":float (temperature ),
 

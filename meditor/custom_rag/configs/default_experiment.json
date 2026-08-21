@@ -1,0 +1,28 @@
+{
+  "corpus": {
+    "corpus_name": "custom_medical_v1",
+    "chunk_size": 384,
+    "chunk_overlap": 96,
+    "min_tokens": 32
+  },
+  "retrieval": {
+    "query_mode": "question_only",
+    "top_k": 32,
+    "sparse_k": 64,
+    "dense_k": 64,
+    "fusion": "rrf",
+    "rrf_k": 60
+  },
+  "dense_index": {
+    "model_name": "${MEDCPT_ARTICLE_MODEL:-ncbi/MedCPT-Article-Encoder}",
+    "query_model_name": "${MEDCPT_QUERY_MODEL:-ncbi/MedCPT-Query-Encoder}",
+    "batch_size": 64,
+    "normalize": true,
+    "use_faiss": true
+  },
+  "prompt": {
+    "max_snippets": 6,
+    "max_chars": 6000,
+    "system": "You are a helpful assistant."
+  }
+}

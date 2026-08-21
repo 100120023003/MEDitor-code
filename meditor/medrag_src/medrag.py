@@ -1102,7 +1102,7 @@ class MedRAG :
 
             ans =self .generate (messages ,**answer_kwargs )
 
-            answers .append (re .sub ("\s+"," ",ans ))
+            answers .append (re .sub (r"\s+"," ",ans ))
 
         else :
 
@@ -1120,7 +1120,7 @@ class MedRAG :
 
                 ans =self .generate (messages ,**answer_kwargs )
 
-                answers .append (re .sub ("\s+"," ",ans ))
+                answers .append (re .sub (r"\s+"," ",ans ))
 
 
 

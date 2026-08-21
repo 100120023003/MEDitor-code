@@ -21,11 +21,13 @@ from datetime import datetime
 
 
 
-from .medrag_src .medrag import MedRAG
+MedRAG =None
 
-from .medrag_src .utils import RetrievalSystem ,collect_index_statuses
+RetrievalSystem =None
 
-from .medrag_src import utils as medrag_utils
+collect_index_statuses =None
+
+medrag_utils =None
 
 from .import medqa
 
@@ -33,19 +35,63 @@ from .agents import ask_once ,make_agent
 
 
 
+def _load_medrag_components ()->None :
+
+    global MedRAG ,RetrievalSystem ,collect_index_statuses ,medrag_utils
+
+    if MedRAG is not None :
+
+        return
+
+    try :
+
+        from .medrag_src .medrag import MedRAG as _MedRAG
+
+        from .medrag_src .utils import RetrievalSystem as _RetrievalSystem ,collect_index_statuses as _collect_index_statuses
+
+        from .medrag_src import utils as _medrag_utils
+
+    except ModuleNotFoundError as exc :
+
+        raise RuntimeError (
+
+        "Local MedRAG retrieval requires the optional retrieval dependencies. "
+
+        "Install them with pip install -e '.[retrieval]', or configure a remote RAG endpoint."
+
+        )from exc
+
+    MedRAG =_MedRAG
+
+    RetrievalSystem =_RetrievalSystem
+
+    collect_index_statuses =_collect_index_statuses
+
+    medrag_utils =_medrag_utils
+
+
+
 try :
 
-    from autogen_agent .custom_rag .bm25_index import BM25Searcher
-
-    from autogen_agent .custom_rag .dense_index import DenseSearcher
-
-    from autogen_agent .custom_rag .retriever import HybridRetriever
+    from .custom_rag .bm25_index import BM25Searcher
 
 except Exception :
 
     BM25Searcher =None
 
+try :
+
+    from .custom_rag .dense_index import DenseSearcher
+
+except Exception :
+
     DenseSearcher =None
+
+try :
+
+    from .custom_rag .retriever import HybridRetriever
+
+except Exception :
 
     HybridRetriever =None
 
@@ -233,6 +279,8 @@ def _dedupe_pairs (pairs :List [Tuple [str ,float ]])->List [Tuple [str ,float ]
 
 def _register_custom_corpora ()->None :
 
+    _load_medrag_components ()
+
     for name ,members in _CUSTOM_CORPORA .items ():
 
         medrag_utils .corpus_names [name ]=list (members )
@@ -298,8 +346,6 @@ class MedRAGCoordinator :
     remote_rag_api_key :str ="EMPTY",
 
     ):
-
-        _register_custom_corpora ()
 
         llm_name =str (llm_name or os .getenv ("MEDRAG_LLM_NAME","")).strip ()
 
@@ -453,6 +499,10 @@ class MedRAGCoordinator :
 
                 pass
 
+        if not self ._use_custom_textbooks_backend ()and self .remote_rag_agent is None :
+
+            _register_custom_corpora ()
+
 
 
         if self .preflight_indexes and not self ._use_custom_textbooks_backend ()and self .remote_rag_agent is None :
@@ -597,13 +647,13 @@ class MedRAGCoordinator :
 
     def _get_custom_textbooks_retriever (self )->HybridRetriever :
 
-        if BM25Searcher is None or DenseSearcher is None or HybridRetriever is None :
+        if HybridRetriever is None :
 
             raise RuntimeError (
 
-            "custom textbooks RAG requires autogen_agent.custom_rag modules. "
+            "Custom textbooks RAG components are unavailable. "
 
-            "Use MedRAG/remote RAG, or provide the optional custom_rag package."
+            "Reinstall MEDitor or use the MedRAG/remote RAG backend."
 
             )
 
@@ -630,6 +680,20 @@ class MedRAGCoordinator :
                 dense_dir =os .path .join (corpus_dir ,"indexes","medcpt")
 
 
+
+        if bm25_dir and os .path .isdir (bm25_dir )and BM25Searcher is None :
+
+            raise RuntimeError ("BM25 index support is unavailable.")
+
+        if dense_dir and os .path .isdir (dense_dir )and DenseSearcher is None :
+
+            raise RuntimeError (
+
+            "Dense index support requires the retrieval dependencies. "
+
+            "Install them with pip install -e '.[retrieval]'."
+
+            )
 
         bm25 =BM25Searcher (bm25_dir )if bm25_dir and os .path .isdir (bm25_dir )else None
 

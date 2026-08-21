@@ -1,0 +1,61 @@
+[build-system]
+requires = ["setuptools>=68", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "meditor-routing"
+version = "0.1.0"
+description = "A plug-and-play medical multi-agent routing protocol"
+readme = "README.md"
+requires-python = ">=3.10"
+license = {file = "LICENSE"}
+keywords = [
+  "medical-question-answering",
+  "multi-agent-systems",
+  "retrieval-augmented-generation",
+]
+classifiers = [
+  "Development Status :: 3 - Alpha",
+  "Intended Audience :: Science/Research",
+  "License :: OSI Approved :: MIT License",
+  "Programming Language :: Python :: 3",
+  "Programming Language :: Python :: 3.10",
+  "Programming Language :: Python :: 3.11",
+  "Programming Language :: Python :: 3.12",
+  "Topic :: Scientific/Engineering :: Artificial Intelligence",
+]
+dependencies = []
+
+[project.optional-dependencies]
+retrieval = [
+  "faiss-cpu>=1.7.4,<2",
+  "Jinja2>=3.1,<4",
+  "numpy>=1.24,<3",
+  "openai>=1.30,<3",
+  "pyserini>=0.22,<1",
+  "python-liquid>=1.10,<3",
+  "sentence-transformers>=2.2,<6",
+  "tiktoken>=0.6,<1",
+  "torch>=2.1",
+  "tqdm>=4.66,<5",
+  "transformers>=4.44,<5",
+]
+gemini = [
+  "google-generativeai>=0.8,<1",
+]
+
+[project.scripts]
+meditor = "meditor.runner:main"
+meditor-rag = "meditor.custom_rag.runner:main"
+
+[project.urls]
+Repository = "https://github.com/100120023003/MEDitor-code"
+Issues = "https://github.com/100120023003/MEDitor-code/issues"
+
+[tool.setuptools.packages.find]
+where = ["."]
+include = ["meditor*"]
+
+[tool.setuptools.package-data]
+"meditor.medrag_src" = ["LICENSE"]
+"meditor.custom_rag" = ["corpus_format.md", "configs/*.json"]

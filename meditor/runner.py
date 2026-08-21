@@ -969,7 +969,11 @@ def _load_baseline (path :str )->Dict [str ,str ]:
 
 def main (argv :Optional [List [str ]]=None ):
 
-    ap =argparse .ArgumentParser ()
+    ap =argparse .ArgumentParser (
+
+    description ="Run MEDitor's agreement-aware medical QA routing protocol."
+
+    )
 
 
 
@@ -993,15 +997,21 @@ def main (argv :Optional [List [str ]]=None ):
 
     ap .add_argument ("--a-model",required =True )
 
+    ap .add_argument ("--a-api-key",default =os .getenv ("MEDITOR_A_API_KEY","EMPTY"))
+
     ap .add_argument ("--b-base",required =True )
 
     ap .add_argument ("--b-model",required =True )
+
+    ap .add_argument ("--b-api-key",default =os .getenv ("MEDITOR_B_API_KEY","EMPTY"))
 
 
 
     ap .add_argument ("--j-base",default ="")
 
     ap .add_argument ("--j-model",default ="")
+
+    ap .add_argument ("--j-api-key",default =os .getenv ("MEDITOR_JUDGE_API_KEY","EMPTY"))
 
 
 
@@ -1010,6 +1020,8 @@ def main (argv :Optional [List [str ]]=None ):
     ap .add_argument ("--solver-base",type =str ,default ="",help ="Optional final solver base_url")
 
     ap .add_argument ("--solver-model",type =str ,default ="",help ="Optional final solver model name")
+
+    ap .add_argument ("--solver-api-key",default =os .getenv ("MEDITOR_SOLVER_API_KEY","EMPTY"))
 
     ap .add_argument ("--solver-max",type =int ,default =256 )
 
@@ -1312,9 +1324,9 @@ def main (argv :Optional [List [str ]]=None ):
 
 
 
-    ExpertA =make_agent ("ExpertA",args .a_base ,args .a_model ,temperature =args .a_temp ,system_message =sysA )
+    ExpertA =make_agent ("ExpertA",args .a_base ,args .a_model ,temperature =args .a_temp ,system_message =sysA ,api_key =args .a_api_key )
 
-    ExpertB =make_agent ("ExpertB",args .b_base ,args .b_model ,temperature =args .b_temp ,system_message =sysB )
+    ExpertB =make_agent ("ExpertB",args .b_base ,args .b_model ,temperature =args .b_temp ,system_message =sysB ,api_key =args .b_api_key )
 
 
 
@@ -1349,7 +1361,7 @@ def main (argv :Optional [List [str ]]=None ):
 
         j_temp =0.2 if (args .judge_self_consistency and args .judge_self_consistency >1 )else 0.0
 
-        Judge =make_agent ("Judge",args .j_base ,args .j_model ,temperature =j_temp ,system_message =sysJ )
+        Judge =make_agent ("Judge",args .j_base ,args .j_model ,temperature =j_temp ,system_message =sysJ ,api_key =args .j_api_key )
 
 
 
@@ -1359,7 +1371,7 @@ def main (argv :Optional [List [str ]]=None ):
 
 
 
-        Solver =make_agent ("Solver",args .solver_base ,args .solver_model ,temperature =0.0 ,system_message ="")
+        Solver =make_agent ("Solver",args .solver_base ,args .solver_model ,temperature =0.0 ,system_message ="" ,api_key =args .solver_api_key )
 
 
 
