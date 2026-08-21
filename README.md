@@ -1,41 +1,83 @@
-# MEDitor: A Plug-and-Play Medical Multi-Agent Routing Protocol
+# [EMNLP 2026] MEDitor: A Plug-and-Play Medical Multi-Agent Routing Protocol
 
-[![CI](https://github.com/100120023003/MEDitor-code/actions/workflows/ci.yml/badge.svg)](https://github.com/100120023003/MEDitor-code/actions/workflows/ci.yml)
-[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
-[![Python 3.10+](https://img.shields.io/badge/Python-3.10%2B-blue.svg)](pyproject.toml)
+<p align="center">
+  <strong>Official camera-ready implementation of MEDitor</strong>
+</p>
 
-This repository contains the camera-ready research code for **MEDitor**, a
-training-free routing protocol for multiple-choice medical question answering.
-MEDitor queries two interchangeable medical experts, returns their shared answer
-on agreement, and sends only disagreement cases through an evidence-grounded
-deep path.
+<p align="center">
+  <img alt="EMNLP 2026" src="https://img.shields.io/badge/EMNLP-2026-4b7f52">
+  <img alt="Paper coming soon" src="https://img.shields.io/badge/Paper-coming%20soon-lightgrey">
+  <a href="https://github.com/100120023003/MEDitor-code/releases/tag/v0.1.0"><img alt="Release" src="https://img.shields.io/github/v/release/100120023003/MEDitor-code"></a>
+  <a href="https://github.com/100120023003/MEDitor-code/actions/workflows/ci.yml"><img alt="CI" src="https://github.com/100120023003/MEDitor-code/actions/workflows/ci.yml/badge.svg"></a>
+  <a href="LICENSE"><img alt="License: MIT" src="https://img.shields.io/badge/License-MIT-yellow.svg"></a>
+  <a href="pyproject.toml"><img alt="Python 3.10+" src="https://img.shields.io/badge/Python-3.10%2B-blue.svg"></a>
+</p>
+
+**TL;DR:** MEDitor is a training-free routing protocol that lets two
+interchangeable medical experts answer easy questions quickly and escalates only
+their disagreements to an evidence-grounded, candidate-constrained deep path.
+Across four medical QA benchmarks, MEDitor reaches **78.03% average accuracy**
+while invoking the deep path for only **23.8%-55.1%** of questions.
+
+<p align="center">
+  <img src="assets/meditor-overview.png" width="1000" alt="MEDitor system architecture">
+</p>
+
+## Highlights
+
+- **Plug-and-play experts.** Heterogeneous medical LLMs share a standardized
+  input/output contract and can be replaced without retraining the router.
+- **Disagreement-triggered routing.** Agreement cases exit through the shallow
+  path; only contested cases pay for retrieval, debate, and judging.
+- **Evidence-grounded arbitration.** The coordinator builds option-aligned
+  evidence packs instead of answering the question directly.
+- **No-New-Option (NNO) constraint.** The judge can select only an
+  expert-proposed candidate or abstain, preventing answer drift.
+- **Traceable and reproducible decisions.** Evidence references, judge traces,
+  and a deterministic abstention fallback make deep-path decisions auditable.
 
 > [!IMPORTANT]
 > MEDitor is research software, not a medical device. Its outputs must not be
 > used for diagnosis, treatment, or other clinical decisions.
 
-## Method
+## News
 
-```text
-                         experts agree
-Question -> Expert A + Expert B ------------> answer
-                    |
-                    | experts disagree
-                    v
-          evidence-grounded coordinator
-                    |
-             optional debate
-                    |
-          candidate-constrained judge
-                    |
-          deterministic fallback
-```
+- **2026-08-21:** Released the public camera-ready code and
+  [`v0.1.0`](https://github.com/100120023003/MEDitor-code/releases/tag/v0.1.0).
+- **2026:** MEDitor was accepted to EMNLP 2026. The public paper link and
+  archival BibTeX will be added when the proceedings metadata is available.
 
-The judge can select only one of the expert-induced candidates or abstain. An
-abstention is resolved by deterministic evidence and expert-decisiveness rules,
-so the deep path cannot introduce a new answer option.
+## Results
 
-The paper configuration uses:
+Exact-match accuracy (%) from Table 1 of the paper:
+
+| Method | MedQA | PubMedQA | MedMCQA | MMLU-med | Average |
+| --- | ---: | ---: | ---: | ---: | ---: |
+| UltraMedical-7B | 74.07 | 75.20 | 63.16 | 70.98 | 70.85 |
+| Huatuo-8B | 78.95 | 77.80 | 60.38 | 77.81 | 73.73 |
+| Llama-3.1-70B-Instruct | 79.42 | 77.84 | 71.83 | 79.89 | 77.24 |
+| Two-expert baseline | 78.01 | 76.50 | 61.77 | 74.39 | 72.66 |
+| Debate only | 79.41 | 78.80 | 64.18 | 78.77 | 75.29 |
+| Judge only | 78.94 | 77.80 | 64.92 | 79.34 | 75.25 |
+| **MEDitor** | **82.46** | **82.20** | **66.12** | **81.34** | **78.03** |
+
+MEDitor matches or exceeds the representative 70B baseline on MedQA,
+PubMedQA, and MMLU-med. Its expensive deep path scales with expert
+disagreement rather than dataset size:
+
+| Benchmark | Evaluation examples | Deep-path calls |
+| --- | ---: | ---: |
+| MedQA | 1,273 | 26.1% |
+| PubMedQA | 500 | 23.8% |
+| MedMCQA | 4,183 | 32.2% |
+| MMLU-med | 1,089 | 55.1% |
+
+These values reproduce Tables 1 and 2 of the camera-ready manuscript. Model
+weights, benchmark data, retrieval corpora, indexes, and generated traces are
+not redistributed; obtain them from their official sources and follow their
+licenses.
+
+### Paper Configuration
 
 | Role | Model |
 | --- | --- |
@@ -44,31 +86,10 @@ The paper configuration uses:
 | Coordinator | Llama-3.1-8B-Instruct |
 | Judge | Prometheus-7B |
 
-The implementation accepts any OpenAI-compatible chat-completions endpoint. The
-paper also evaluates a Qwen3-8B and Meerkat-8B expert pair.
+The implementation accepts any OpenAI-compatible chat-completions endpoint.
+The paper also evaluates a Qwen3-8B and Meerkat-8B expert pair.
 
-## Repository Contents
-
-| Path | Purpose |
-| --- | --- |
-| `meditor/runner.py` | Main agreement-aware routing and evaluation entry point |
-| `meditor/coordinator_medrag.py` | Evidence-grounded coordinator |
-| `meditor/agents.py` | OpenAI-compatible endpoint client |
-| `meditor/voting.py` | Self-consistency voting |
-| `meditor/debate.py` | Optional disagreement debate |
-| `meditor/judge.py` | Candidate-constrained pairwise judge |
-| `meditor/router.py` | Shallow/deep routing policy |
-| `meditor/medqa.py` and `meditor/bench_io.py` | Input parsers |
-| `meditor/medrag_src/` | Adapted MedRAG retrieval backend |
-| `meditor/custom_rag/` | Custom corpus import and hybrid indexing utilities |
-| `examples/` | Public example input and cached predictions |
-| `tests/` | Dependency-light release tests |
-
-Model weights, benchmark data, retrieval corpora, indexes, checkpoints, and
-generated outputs are not redistributed. Obtain each asset from its official
-source and follow its license.
-
-## Installation
+## Quick Start
 
 Python 3.10 or 3.11 is recommended.
 
@@ -87,22 +108,42 @@ On Windows PowerShell, activate the environment with:
 .\.venv\Scripts\Activate.ps1
 ```
 
+Run the dependency-light smoke test below. It makes no model or network calls:
+both expert predictions are read from the included cache and take the shallow
+path.
+
+```bash
+python -m meditor.runner \
+  --data examples/example_input.jsonl \
+  --run-dir outputs/smoke \
+  --a-base http://127.0.0.1:8602/v1 --a-model unused-expert-a \
+  --b-base http://127.0.0.1:8603/v1 --b-model unused-expert-b \
+  --a-baseline-preds examples/expert_a_predictions.jsonl \
+  --b-baseline-preds examples/expert_b_predictions.jsonl \
+  --disable-debate --no-llm-judge
+```
+
+On PowerShell, replace each trailing `\` with a backtick, or put the command on
+one line.
+
+## Installation Options
+
 The base install is sufficient for remote OpenAI-compatible endpoints and the
-cached-prediction smoke test. For local MedRAG retrieval:
+cached-prediction smoke test. For local MedRAG retrieval, install:
 
 ```bash
 python -m pip install -e ".[retrieval]"
 ```
 
 Install the CUDA-specific PyTorch build required by your hardware before the
-retrieval extra when applicable. Pyserini-based sparse retrieval also requires a
-working Java installation.
+retrieval extra when applicable. Pyserini-based sparse retrieval also requires
+a working Java installation.
 
 ### Custom Textbook Indexes
 
-MEDitor also includes a self-contained BM25/dense indexing path for owned or
+MEDitor includes a self-contained BM25/dense indexing path for owned or
 properly licensed textbook corpora. Convert source material to the
-[documented corpus format](meditor/custom_rag/corpus_format.md), then build
+[documented corpus format](meditor/custom_rag/corpus_format.md), then build the
 indexes:
 
 ```bash
@@ -122,25 +163,6 @@ Select those indexes in the main runner with
 `--custom-rag-textbooks-corpus-dir /path/to/corpus`. Use only corpora whose
 licenses permit this processing.
 
-## Quick Verification
-
-This command makes no model or network calls. Both expert predictions are read
-from the example cache and take the shallow path:
-
-```bash
-python -m meditor.runner \
-  --data examples/example_input.jsonl \
-  --run-dir outputs/smoke \
-  --a-base http://127.0.0.1:8602/v1 --a-model unused-expert-a \
-  --b-base http://127.0.0.1:8603/v1 --b-model unused-expert-b \
-  --a-baseline-preds examples/expert_a_predictions.jsonl \
-  --b-baseline-preds examples/expert_b_predictions.jsonl \
-  --disable-debate --no-llm-judge
-```
-
-On PowerShell, replace each trailing `\` with a backtick, or put the command on
-one line.
-
 ## Run MEDitor
 
 Start OpenAI-compatible servers for the two experts and judge, then run:
@@ -157,8 +179,8 @@ python -m meditor.runner \
   --remote-rag-model rag-coordinator
 ```
 
-`--use-medrag-judge` enables the evidence coordinator. The example above uses a
-complete remote RAG service. For the bundled local retrieval backend, replace
+`--use-medrag-judge` enables the evidence coordinator. The example above uses
+a complete remote RAG service. For the bundled local retrieval backend, replace
 the remote RAG arguments with:
 
 ```bash
@@ -187,7 +209,7 @@ arguments or these environment variables:
 Prefer environment variables so credentials do not appear in shell history.
 Never commit `.env` files.
 
-## Data Format
+## Data and Outputs
 
 The default loader expects one JSON object per line:
 
@@ -207,21 +229,35 @@ Cached expert files use one record per line:
 ```
 
 The cache loader also accepts `uid`/`idx` keys and common prediction field
-names. Cached predictions are useful for exact routing ablations and for
-avoiding repeated expert inference.
+names. Each run writes:
 
-## Outputs
-
-Each run writes:
-
-- `preds.jsonl`: predictions, routing decisions, and per-case metadata.
-- `judge_traces.jsonl`: judge inputs and outputs when judging is used.
-- `run_summary.md`: aggregate accuracy and routing statistics.
-- `md/`: optional readable case traces when `--md-all` is enabled.
-- `medrag/`: retrieval logs when the evidence coordinator is enabled.
+| Output | Description |
+| --- | --- |
+| `preds.jsonl` | Predictions, routing decisions, and per-case metadata |
+| `judge_traces.jsonl` | Judge inputs and outputs when judging is enabled |
+| `run_summary.md` | Aggregate accuracy and routing statistics |
+| `md/` | Optional readable traces produced by `--md-all` |
+| `medrag/` | Retrieval logs when the evidence coordinator is enabled |
 
 Do not publish raw benchmark questions, licensed corpora, or private model
 traces unless their licenses and data-governance rules permit it.
+
+## Repository Structure
+
+| Path | Purpose |
+| --- | --- |
+| `meditor/runner.py` | Main agreement-aware routing and evaluation entry point |
+| `meditor/coordinator_medrag.py` | Evidence-grounded coordinator |
+| `meditor/agents.py` | OpenAI-compatible endpoint client |
+| `meditor/voting.py` | Self-consistency voting |
+| `meditor/debate.py` | Optional disagreement debate |
+| `meditor/judge.py` | Candidate-constrained pairwise judge |
+| `meditor/router.py` | Shallow/deep routing policy |
+| `meditor/medqa.py`, `meditor/bench_io.py` | Input parsers |
+| `meditor/medrag_src/` | Adapted MedRAG retrieval backend |
+| `meditor/custom_rag/` | Custom corpus import and hybrid indexing utilities |
+| `examples/` | Public example input and cached predictions |
+| `tests/` | Dependency-light release tests |
 
 ## Tests
 
@@ -236,8 +272,8 @@ heavyweight dependencies.
 ## Citation
 
 Please cite the EMNLP 2026 paper **"MEDitor: A Plug-and-Play Medical
-Multi-Agent Routing Protocol."** The archival ACL Anthology BibTeX entry will be
-added here once the proceedings record is available.
+Multi-Agent Routing Protocol."** The paper link and archival ACL Anthology
+BibTeX entry will be added here once the proceedings record is public.
 
 ## Acknowledgements
 
