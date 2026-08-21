@@ -44,7 +44,7 @@ while invoking the deep path for only **23.8%-55.1%** of questions.
 
 - **2026-08-21:** Released the public camera-ready code and
   [`v0.1.0`](https://github.com/100120023003/MEDitor-code/releases/tag/v0.1.0).
-- **2026:** MEDitor was accepted to EMNLP 2026. The public paper link and
+- **2026:** MEDitor was accepted to EMNLP Findings 2026. The public paper link and
   archival BibTeX will be added when the proceedings metadata is available.
 
 ## Results
@@ -81,7 +81,7 @@ licenses.
 
 | Role | Model |
 | --- | --- |
-| Expert A | UltraMedical-7B |
+| Expert A | UltraMedical-8B |
 | Expert B | Huatuo-8B |
 | Coordinator | Llama-3.1-8B-Instruct |
 | Judge | Prometheus-7B |
